@@ -1,0 +1,7 @@
+Atalhos
+crtl+1 -> assistente de ajuda
+crtl+espaco -> autocomplete
+alt+shift+T -> executa test unitarios
+alt+shift+? -> executa
+ctrl+shift+o -> import de todas as classes
+ctrl+shift+m -> import de todas as classes static
