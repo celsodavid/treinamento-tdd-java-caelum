@@ -12,6 +12,7 @@ import br.com.caelum.leilao.dominio.Usuario;
 
 public class AvaliadorTest {
 
+	
 	@Test
 	public void testeAvaliadorEmOrdemAleatoria() {
 		Usuario celso = new Usuario("Celso");
