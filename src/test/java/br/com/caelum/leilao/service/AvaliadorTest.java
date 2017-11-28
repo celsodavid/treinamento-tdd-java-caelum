@@ -4,6 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import br.com.caelum.leilao.dominio.Lance;
@@ -11,8 +15,38 @@ import br.com.caelum.leilao.dominio.Leilao;
 import br.com.caelum.leilao.dominio.Usuario;
 
 public class AvaliadorTest {
-
 	
+	private Avaliador leiloeiro;
+	
+	@Before
+	public void setUp() {
+		System.out.println("Inicia");
+		leiloeiro = new Avaliador();
+	}
+	
+	@After
+	public void finaliza() {
+		System.out.println("Fim do Teste");
+	}
+	
+	@BeforeClass
+	public static void iniciaClasse() {
+		System.out.println("Iniciando classe de teste.");
+	}
+	
+	@AfterClass
+	public static void finalizaClasse() {
+		System.out.println("Finalizando classe de teste.");
+	}
+	
+	@Test
+	public void qlqrTest() {
+		setUp();
+		
+		Leilao leilao = new Leilao("Playstation 4 Slim");
+		leiloeiro.avalia(leilao);
+	}
+
 	@Test
 	public void testeAvaliadorEmOrdemAleatoria() {
 		Usuario celso = new Usuario("Celso");
@@ -118,6 +152,6 @@ public class AvaliadorTest {
 		assertEquals(1, lance.size());
 		assertEquals(400, lance.get(0).getValor(), 0.000000001);
 	}
-	
+
 	
 }
