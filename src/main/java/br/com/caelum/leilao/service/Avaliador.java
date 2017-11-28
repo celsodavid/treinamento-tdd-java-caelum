@@ -16,10 +16,7 @@ public class Avaliador {
 	
 	public void avalia(Leilao leilao) {
 		if (leilao.getLances().isEmpty()) {
-			maiorDeTodos = 0;
-			menorDeTodos = 0;
-			
-			return;
+			throw new IllegalArgumentException("Leilao deve possuir lances para ser avaliado");
 		}
 		
 		for (Lance lance : leilao.getLances()) {

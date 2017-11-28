@@ -5,4 +5,5 @@ alt+shift+T -> executa test unitarios
 alt+shift+? -> executa
 ctrl+shift+o -> import de todas as classes
 ctrl+shift+m -> import de todas as classes static
-
+crtl+3
+crtl+shift+o - importab as classes

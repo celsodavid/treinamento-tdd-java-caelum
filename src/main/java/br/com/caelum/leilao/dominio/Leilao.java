@@ -25,7 +25,7 @@ public class Leilao {
 	}
 	
 	public void propoe(Lance lance) {		
-		if (lances.isEmpty() || (!ultimoLance().getUsuario().equals(lance.getUsuario()) && gtdLancesUsuario(lance.getUsuario()) < 5)) {
+		if (lances.isEmpty() || usuarioPodeDarLance(lance.getUsuario())) {
 			lances.add(lance);
 		}
 	}
@@ -44,7 +44,7 @@ public class Leilao {
 		return aux;
 	}
 	
-	private boolean podeDarLance() {
-		return true;
+	private boolean usuarioPodeDarLance(Usuario usuario) {
+		return (!ultimoLance().getUsuario().equals(usuario) && gtdLancesUsuario(usuario) < 5);
 	}
 }
