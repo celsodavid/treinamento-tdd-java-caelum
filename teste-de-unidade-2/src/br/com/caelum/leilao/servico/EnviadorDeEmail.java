@@ -7,5 +7,9 @@ public class EnviadorDeEmail implements InterfaceEnviadorDeEmail {
 
 	public void envia(Leilao leilao) {
 		
+	}
+
+	public void notificarErro(Leilao leilao) {
+		
 	}	
 }

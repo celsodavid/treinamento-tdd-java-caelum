@@ -1,7 +1,7 @@
 package br.com.caelum.leilao.servico;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -15,6 +15,7 @@ import java.util.GregorianCalendar;
 
 import org.junit.Test;
 import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 import br.com.caelum.leilao.builder.CriadorDeLeilao;
 import br.com.caelum.leilao.dominio.Leilao;
@@ -62,7 +63,7 @@ public class EncerradorDeLeilaoTest {
 	public void testQueNaoEncerraComMenosDeUmaSemana() {
 		Leilao leilao = new CriadorDeLeilao()
 				.para("TV 4K")
-				.naData(new GregorianCalendar(2017, Calendar.NOVEMBER, 23))
+				.naData(new GregorianCalendar(2017, Calendar.NOVEMBER, 24))
 				.lance(celso, 600)
 				.constroi();
 		
@@ -109,4 +110,35 @@ public class EncerradorDeLeilaoTest {
 		verify(daoFalso, times(1)).atualiza(leilao);
 		verify(daoFalso, never()).atualiza(leilao2);
 	}
+	
+	@Test
+	public void testQueNaFalhaDoEnvioDeEmailOsDemaisLeiloesSeraoEnviados() {
+		Leilao leilao = new CriadorDeLeilao()
+				.para("TV 4K")
+				.naData(new GregorianCalendar(2017, Calendar.NOVEMBER, 20))
+				.lance(celso, 600)
+				.constroi();
+		
+		Leilao leilao2 = new CriadorDeLeilao()
+				.para("TV 4K")
+				.naData(new GregorianCalendar(2017, Calendar.NOVEMBER, 19))
+				.lance(lopes, 300)
+				.constroi();
+		
+		InterfaceLeilaoDao daoFalso = mock(InterfaceLeilaoDao.class);
+		when(daoFalso.correntes()).thenReturn(Arrays.asList(leilao, leilao2));
+		
+		InterfaceEnviadorDeEmail carteiroFalso = mock(InterfaceEnviadorDeEmail.class);
+		Mockito.doThrow(new RuntimeException()).when(carteiroFalso).envia(leilao);
+		
+		EncerradorDeLeilao encerradorDeLeilao = new EncerradorDeLeilao(daoFalso, carteiroFalso);
+		encerradorDeLeilao.encerra();
+		
+		verify(carteiroFalso, times(1)).notificarErro(leilao);
+		
+		verify(carteiroFalso, times(1)).envia(leilao2);
+		verify(carteiroFalso, never()).notificarErro(leilao2);		
+	}
+	
+	
 }

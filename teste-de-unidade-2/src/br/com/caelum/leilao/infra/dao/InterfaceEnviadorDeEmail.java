@@ -4,4 +4,5 @@ import br.com.caelum.leilao.dominio.Leilao;
 
 public interface InterfaceEnviadorDeEmail {
 	void envia(Leilao leilao);
+	void notificarErro(Leilao leilao);
 }
