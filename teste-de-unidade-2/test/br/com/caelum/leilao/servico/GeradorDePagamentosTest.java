@@ -10,7 +10,11 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import br.com.caelum.leilao.builder.CriadorDeLeilao;
 import br.com.caelum.leilao.dominio.Leilao;
@@ -19,180 +23,127 @@ import br.com.caelum.leilao.dominio.RepositorioDePagamentos;
 import br.com.caelum.leilao.dominio.Usuario;
 import br.com.caelum.leilao.infra.dao.InterfaceLeilaoDao;
 
+@RunWith(MockitoJUnitRunner.class)
 public class GeradorDePagamentosTest {
 
 	private Usuario jose;
 	private Usuario maria;
+	private Calendar domingo;
+	private Calendar sabado;
+	private Calendar segunda;
+	private Leilao leilao;
+	private Leilao leilao2;
+	private Avaliador avaliador;
+	private GeradorDePagamentos geradorDePagamentos;
+	
+	@Mock
+	private InterfaceLeilaoDao leilaoDao;
+	@Mock
+	private RepositorioDePagamentos pagamentos;
+	@Mock
+	private CalendarioDoSistema calendario;
+	@Captor
+	private ArgumentCaptor<Pagamento> captor;
 
 	@Before
 	public void setUp() {
 		jose = new Usuario("Jose");
 		maria = new Usuario("Maria");
+		
+		avaliador = new Avaliador();
+		
+		domingo = new GregorianCalendar(20017, Calendar.NOVEMBER, 26);
+		sabado = new GregorianCalendar(20017, Calendar.NOVEMBER, 25);
+		segunda = new GregorianCalendar(20017, Calendar.NOVEMBER, 27);
+		
+		leilao = new CriadorDeLeilao().para("Tv Plamas 49").naData(segunda).lance(maria, 100).lance(jose, 600).constroi();
+		leilao2 = new CriadorDeLeilao().para("Tv 4k").naData(segunda).lance(jose, 500).lance(maria, 200).constroi();
+		
+		geradorDePagamentos = new GeradorDePagamentos(pagamentos, leilaoDao, avaliador, calendario);
 	}
 	
 	@Test
 	public void testDeveGerarPagamentoParaUmLeilaoEncerrado() {
-		InterfaceLeilaoDao dao = mock(InterfaceLeilaoDao.class);
-		RepositorioDePagamentos pagamentos = mock(RepositorioDePagamentos.class);
-		Avaliador avaliador = mock(Avaliador.class);
-		CalendarioDoSistema calendario = new CalendarioDoSistema();
 		
-		Leilao leilao = new CriadorDeLeilao()
-			.para("Tv Plamas 49")
-			.naData(Calendar.getInstance())
-			.lance(jose, 600.0)
-			.lance(maria, 200.00)
-			.constroi()
-		;
+		when(leilaoDao.encerrados()).thenReturn(Arrays.asList(leilao));
+		when(calendario.hoje()).thenReturn(segunda);
 		
-		when(dao.encerrados()).thenReturn(Arrays.asList(leilao));
-		when(avaliador.getMaiorLance()).thenReturn(600.0);
-		
-		GeradorDePagamentos geradorDePagamentos = new GeradorDePagamentos(pagamentos, dao, avaliador, calendario);
 		geradorDePagamentos.gera();
 		
-		ArgumentCaptor<Pagamento> pagamento = ArgumentCaptor.forClass(Pagamento.class);	
-		verify(pagamentos).salva(pagamento.capture());
+		verify(pagamentos).salva(captor.capture());
 		
-		Pagamento pagamentoGerado = pagamento.getValue();
+		Pagamento pagamentoGerado = captor.getValue();
 		assertThat(pagamentoGerado.getValor(), equalTo(600.0));
 	}
 
 	@Test
 	public void testDeveGerarPagamentoParaUmLeilaoEncerrado2() {
-		InterfaceLeilaoDao dao = mock(InterfaceLeilaoDao.class);
-		RepositorioDePagamentos pagamentos = mock(RepositorioDePagamentos.class);
-		Avaliador avaliador = new Avaliador();
-		CalendarioDoSistema calendario = new CalendarioDoSistema();
 		
-		Leilao leilao = new CriadorDeLeilao()
-			.para("Tv Plamas 49")
-			.naData(Calendar.getInstance())
-			.lance(jose, 600.0)
-			.lance(maria, 200.00)
-			.constroi()
-		;
+		when(leilaoDao.encerrados()).thenReturn(Arrays.asList(leilao));
+		when(calendario.hoje()).thenReturn(segunda);
 		
-		when(dao.encerrados()).thenReturn(Arrays.asList(leilao));
-		
-		GeradorDePagamentos geradorDePagamentos = new GeradorDePagamentos(pagamentos, dao, avaliador, calendario);
 		geradorDePagamentos.gera();
 		
-		ArgumentCaptor<Pagamento> pagamento = ArgumentCaptor.forClass(Pagamento.class);	
-		verify(pagamentos).salva(pagamento.capture());
+		verify(pagamentos).salva(captor.capture());
 		
-		Pagamento pagamentoGerado = pagamento.getValue();
+		Pagamento pagamentoGerado = captor.getValue();
 		assertThat(pagamentoGerado.getValor(), equalTo(600.0));
 	}
 	
 	@Test
 	public void testDeveGerarPagamentoParaLeilaosEncerrados() {
-		InterfaceLeilaoDao dao = mock(InterfaceLeilaoDao.class);
-		RepositorioDePagamentos pagamentos = mock(RepositorioDePagamentos.class);
-		Avaliador avaliador = new Avaliador();
-		CalendarioDoSistema calendario = new CalendarioDoSistema();
 		
-		Leilao leilao1 = new CriadorDeLeilao()
-			.para("Tv Plamas 49")
-			.naData(Calendar.getInstance())
-			.lance(jose, 600.0)
-			.lance(maria, 200.0)
-			.constroi()
-		;
+		when(leilaoDao.encerrados()).thenReturn(Arrays.asList(leilao));
+		when(calendario.hoje()).thenReturn(segunda);
 		
-		Leilao leilao2 = new CriadorDeLeilao()
-			.para("Tv Plamas 49")
-			.naData(Calendar.getInstance())
-			.lance(jose, 40.0)
-			.lance(maria, 90.0)
-			.constroi()
-		;		
-		
-		when(dao.encerrados()).thenReturn(Arrays.asList(leilao1));
-		when(dao.encerrados()).thenReturn(Arrays.asList(leilao2));
-		
-		GeradorDePagamentos geradorDePagamentos = new GeradorDePagamentos(pagamentos, dao, avaliador, calendario);
 		geradorDePagamentos.gera();
+			
+		verify(pagamentos).salva(captor.capture());
 		
-		ArgumentCaptor<Pagamento> pagamento = ArgumentCaptor.forClass(Pagamento.class);	
-		verify(pagamentos).salva(pagamento.capture());
-		
-		Pagamento pagamentoGerado = pagamento.getValue();
-		assertThat(pagamentoGerado.getValor(), equalTo(90.0));
+		Pagamento pagamentoGerado = captor.getValue();
+		assertThat(pagamentoGerado.getValor(), equalTo(600.0));
 		// faltou item aqui
 	}
 	
 	@Test
 	public void testGerarPagamentoNoMesmoDiaSeODiaForUtil() {
-		Calendar hoje = new GregorianCalendar(2017, Calendar.NOVEMBER, 28);
-		Leilao leilao = new CriadorDeLeilao().para("TV").naData(hoje).lance(maria, 100).constroi();
 		
-		RepositorioDePagamentos pagamentos = mock(RepositorioDePagamentos.class);
-		InterfaceLeilaoDao dao = mock(InterfaceLeilaoDao.class);
-		Avaliador avaliador = mock(Avaliador.class);
-		CalendarioDoSistema calendario = mock(CalendarioDoSistema.class);
+		when(calendario.hoje()).thenReturn(segunda);		
+		when(leilaoDao.encerrados()).thenReturn(Arrays.asList(leilao));
 		
-		when(calendario.hoje()).thenReturn(hoje);
-		
-		when(dao.encerrados()).thenReturn(Arrays.asList(leilao));
-		
-		GeradorDePagamentos geradorDePagamentos = new GeradorDePagamentos(pagamentos, dao, avaliador, calendario);
 		geradorDePagamentos.gera();
 		
-		ArgumentCaptor<Pagamento> pagamento = ArgumentCaptor.forClass(Pagamento.class);
-		verify(pagamentos).salva(pagamento.capture());
+		verify(pagamentos).salva(captor.capture());
 		
-		Pagamento pagamentoGerado = pagamento.getValue();
-		assertThat(pagamentoGerado.getData(), equalTo(hoje));
+		Pagamento pagamentoGerado = captor.getValue();
+		assertThat(pagamentoGerado.getData(), equalTo(segunda));
 	}
 	
 	@Test
 	public void testGerarPagamentoProximoDiaUtilCasoForDomingo() {
-		Calendar domingo = new GregorianCalendar(20017, Calendar.NOVEMBER, 26);
-		Calendar segunda = new GregorianCalendar(20017, Calendar.NOVEMBER, 27);
-		
-		Leilao leilao = new CriadorDeLeilao().para("TV").naData(domingo).lance(maria, 100).constroi();
-		
-		RepositorioDePagamentos pagamentos = mock(RepositorioDePagamentos.class);
-		InterfaceLeilaoDao dao = mock(InterfaceLeilaoDao.class);
-		Avaliador avaliador = mock(Avaliador.class);
-		CalendarioDoSistema calendario = mock(CalendarioDoSistema.class);
 		
 		when(calendario.hoje()).thenReturn(domingo);
-		when(dao.encerrados()).thenReturn(Arrays.asList(leilao));
+		when(leilaoDao.encerrados()).thenReturn(Arrays.asList(leilao));
 			
-		GeradorDePagamentos geradorDePagamentos = new GeradorDePagamentos(pagamentos, dao, avaliador, calendario);
 		geradorDePagamentos.gera();
 		
-		ArgumentCaptor<Pagamento> pagamento = ArgumentCaptor.forClass(Pagamento.class);
-		verify(pagamentos).salva(pagamento.capture());
+		verify(pagamentos).salva(captor.capture());
 		
-		Pagamento pagamentoGerado = pagamento.getValue();
+		Pagamento pagamentoGerado = captor.getValue();
 		assertThat(pagamentoGerado.getData(), equalTo(segunda));
 	}
 	
 	@Test
 	public void testGerarPagamentoProximoDiaUtilCasoForSabado() {
-		Calendar sabado = new GregorianCalendar(20017, Calendar.NOVEMBER, 25);
-		Calendar segunda = new GregorianCalendar(20017, Calendar.NOVEMBER, 27);
-		
-		Leilao leilao = new CriadorDeLeilao().para("TV").naData(sabado).lance(maria, 100).constroi();
-		
-		RepositorioDePagamentos pagamentos = mock(RepositorioDePagamentos.class);
-		InterfaceLeilaoDao dao = mock(InterfaceLeilaoDao.class);
-		Avaliador avaliador = mock(Avaliador.class);
-		CalendarioDoSistema calendario = mock(CalendarioDoSistema.class);
 		
 		when(calendario.hoje()).thenReturn(sabado);
-		when(dao.encerrados()).thenReturn(Arrays.asList(leilao));
+		when(leilaoDao.encerrados()).thenReturn(Arrays.asList(leilao));
 			
-		GeradorDePagamentos geradorDePagamentos = new GeradorDePagamentos(pagamentos, dao, avaliador, calendario);
 		geradorDePagamentos.gera();
 		
-		ArgumentCaptor<Pagamento> pagamento = ArgumentCaptor.forClass(Pagamento.class);
-		verify(pagamentos).salva(pagamento.capture());
+		verify(pagamentos).salva(captor.capture());
 		
-		Pagamento pagamentoGerado = pagamento.getValue();
+		Pagamento pagamentoGerado = captor.getValue();
 		assertThat(pagamentoGerado.getData(), equalTo(segunda));
 	}
 }
