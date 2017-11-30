@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="lib/hibernate/jboss-transaction-api_1.1_spec-1.0.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/mockito-core-1.8.5.jar"/>
 	<classpathentry kind="lib" path="lib/objenesis-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/cust7441/workspace/curso/pm73-dao/selenium-server-standalone-3.8.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

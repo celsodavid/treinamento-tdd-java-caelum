@@ -46,11 +46,12 @@ public class LeilaoDao {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<Leilao> porPeriodo(Calendar inicio, Calendar fim) {
+	public List<Leilao> porPeriodo(Calendar inicio, Calendar fim, boolean encerrado) {
 		return session.createQuery("from Leilao l where l.dataAbertura " +
-				"between :inicio and :fim and l.encerrado = false")
+				"between :inicio and :fim and l.encerrado = :encerrado")
 				.setParameter("inicio", inicio)
 				.setParameter("fim", fim)
+				.setParameter("encerrado", encerrado)
 				.list();
 	}
 	
@@ -58,7 +59,7 @@ public class LeilaoDao {
 	public List<Leilao> disputadosEntre(double inicio, double fim) {
 		return session.createQuery("from Leilao l where l.valorInicial " +
 				"between :inicio and :fim and l.encerrado = false " +
-				"and size(l.lances) > 3")
+				"and size(l.lances) >= 3")
 				.setParameter("inicio", inicio)
 				.setParameter("fim", fim)
 				.list();
@@ -85,7 +86,7 @@ public class LeilaoDao {
 	
 	@SuppressWarnings("unchecked")
 	public List<Leilao> listaLeiloesDoUsuario(Usuario usuario) {
-		return session.createQuery("select lance.leilao " +
+		return session.createQuery("select distinct lance.leilao " +
 								   "from Lance lance " +
 								   "where lance.usuario = :usuario")
 				.setParameter("usuario", usuario).list();

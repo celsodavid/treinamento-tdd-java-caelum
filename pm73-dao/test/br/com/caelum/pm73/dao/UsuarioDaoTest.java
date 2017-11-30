@@ -22,10 +22,13 @@ public class UsuarioDaoTest {
 		session = new CriadorDeSessao().getSession();
 		usuarioDao = new UsuarioDao(session);
 		usuario = new Usuario("fulano", "fulano@fulano.com.br");
+		
+		session.beginTransaction();
 	}
 	
 	@After
 	public void setOut() {
+		session.getTransaction().rollback();
 		session.close();
 	}
 	
@@ -43,5 +46,36 @@ public class UsuarioDaoTest {
 		Usuario usuarioDoBanco = usuarioDao.porNomeEEmail("fulano", "fulano@fulano.com.br");
 		
 		assertNull(usuarioDoBanco);
+	}
+	
+	@Test
+	public void testDeveExcluirUmUsuario() {
+		usuarioDao.salvar(usuario);
+		
+		Usuario usuarioDoBancoSalvo = usuarioDao.porNomeEEmail("fulano", "fulano@fulano.com.br");		
+		assertThat(usuarioDoBancoSalvo, equalTo(usuario));
+		
+		usuarioDao.deletar(usuario);
+		session.flush(); // metodo para ser utilizado na delecao e na atualizacao
+		
+		Usuario usuarioDoBancoDeletado = usuarioDao.porNomeEEmail("fulano", "fulano@fulano.com.br");
+		assertThat(usuarioDoBancoDeletado, nullValue());
+	}
+
+	@Test
+	public void testDeveAtualizarUmUsuario() {
+		usuarioDao.salvar(usuario);
+		
+		Usuario usuarioDoBancoSalvo = usuarioDao.porNomeEEmail("fulano", "fulano@fulano.com.br");		
+		assertThat(usuarioDoBancoSalvo, equalTo(usuario));
+		
+		usuario.setNome("Celso");
+		usuario.setEmail("celso.lopes@fs.com.br");
+		usuarioDao.atualizar(usuario);
+		
+		session.flush(); // metodo para ser utilizado na delecao e na atualizacao
+		
+		Usuario usuarioDoBancoAlterado = usuarioDao.porNomeEEmail("Celso", "celso.lopes@fs.com.br");
+		assertThat(usuarioDoBancoAlterado, equalTo(usuario));
 	}
 }
