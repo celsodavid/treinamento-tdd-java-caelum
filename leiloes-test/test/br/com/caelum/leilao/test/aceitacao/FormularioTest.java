@@ -2,40 +2,94 @@ package br.com.caelum.leilao.test.aceitacao;
 
 import static org.junit.Assert.*;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 
-import junit.framework.Assert;
+import br.com.caelum.leilao.test.page.object.UsuarioPage;
 
 public class FormularioTest {
+	
+	private WebDriver navegador;
+	private UsuarioPage usuarioPage;
 
-	/* /apenas-teste/limpa */
+	@Before
+	public void setUp() {
+		navegador = new ChromeDriver();
+		navegador.get("http://localhost:8080/apenas-teste/limpa");
+		usuarioPage = new UsuarioPage(navegador);
+	}
+	
+	@After
+	public void tearOut() {
+		navegador.close();
+	}
 	
 	@Test
-	public void testDeveCadastrarUsuario() {
-		WebDriver navegador = new FirefoxDriver();
-		navegador.navigate().to("http://localhost:8080/usuarios/new");
+	public void testDeveCadastrarUsuarioParaDadosValidos() {		
+		boolean contemCampos = usuarioPage
+				   .abreListaDeUsuarios()
+				   .varParaTelaDeCadastro()
+				   .popularFormulario("Adriano Xavier", "adriano@empresa.com")
+				   .enviaFormulario()
+				   .validaSePossui("Adriano Xavier", "adriano@empresa.com");
 		
-		WebElement campoNome = navegador.findElement(By.name("usuario.nome"));
-		campoNome.sendKeys("Adriano Xavier");
-		
-		WebElement campoEmail = navegador.findElement(By.name("usuario.email"));
-		campoEmail.sendKeys("adriano@empresa.com");
-		
-		campoEmail.submit();
-		
-		String html = navegador.getPageSource();
-		
-		navegador.close();
-		
-		boolean encontrouNome = html.contains("Adriano Xavier");
-		boolean encontrouEmail = html.contains("adriano@empresa.com");
-		
-		assertTrue(encontrouNome);
-		assertTrue(encontrouEmail);
+		assertTrue(contemCampos);
 	}
-
+	
+	@Test
+	public void testDeveExcluirOUsuarioCadastrado() {		
+		boolean usuarioExcluido = usuarioPage
+				   .abreListaDeUsuarios()
+				   .varParaTelaDeCadastro()
+				   .popularFormulario("Adriano Xavier", "adriano@empresa.com")
+				   .enviaFormulario()
+				   .clicaNoBotaoExcluir()
+				   .confirmaExclusao()
+				   .validaSeNaoPossui("Adriano Xavier", "adriano@empresa.com");
+		
+		assertTrue(usuarioExcluido);
+	}
+	
+	@Test
+	public void testDeveExibirMensagemDeErroAoCadastrarUmUsuarioSemDados() {			
+		usuarioPage
+		   .abreListaDeUsuarios()
+		   .varParaTelaDeCadastro()
+		   .popularFormulario("", "")
+		   .enviaFormulario();
+		
+		boolean nomeObrigatorio = usuarioPage.validaMensagemDeErroCom("Nome obrigatorio");
+		boolean emailObrigatorio = usuarioPage.validaMensagemDeErroCom("E-mail obrigatorio");
+				
+		assertTrue(nomeObrigatorio);
+		assertTrue(emailObrigatorio);
+	}
+	
+	@Test
+	public void testDeveExibirMensagemDeErroAoCadastrarUmUsuarioSemUsuario() {			
+		usuarioPage
+		   .abreListaDeUsuarios()
+		   .varParaTelaDeCadastro()
+		   .popularFormulario("", "usuario@usuario.com")
+		   .enviaFormulario();
+		
+		boolean nomeObrigatorio = usuarioPage.validaMensagemDeErroCom("Nome obrigatorio");
+				
+		assertTrue(nomeObrigatorio);
+	}
+	
+	@Test
+	public void testDeveExibirMensagemDeErroAoCadastrarUmUsuarioSemEmail() {			
+		usuarioPage
+		   .abreListaDeUsuarios()
+		   .varParaTelaDeCadastro()
+		   .popularFormulario("", "")
+		   .enviaFormulario();
+		
+		boolean emailObrigatorio = usuarioPage.validaMensagemDeErroCom("E-mail obrigatorio");
+		assertTrue(emailObrigatorio);
+	}
 }
